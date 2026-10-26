@@ -11,12 +11,16 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js with dependency cache
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -26,23 +30,40 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium firefox webkit
+        run: npx playwright install --with-deps ${{ matrix.browser }}
 
       - name: Run Playwright tests
-        run: npx playwright test
+        run: npx playwright test --project=${{ matrix.browser }}
 
       - name: Generate HTML report
         if: always()
         run: npx playwright show-report reports/html-report --host 127.0.0.1 --port 9323 || true
 
-      - name: Upload test artifacts
+      - name: Upload HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-artifacts
-          path: |
-            reports/
-            playwright-report/
-            test-results/
+          name: playwright-html-report-${{ matrix.browser }}
+          path: reports/html-report
           if-no-files-found: ignore
           retention-days: 30
+
+      - name: Upload screenshots and failure artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failures-${{ matrix.browser }}
+          path: |
+            reports/test-results
+            screenshots
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Publish test result summary
+        if: always()
+        run: |
+          echo "Browser: ${{ matrix.browser }}"
+          echo "Playwright execution completed for ${{ matrix.browser }}"
+          if [ -d "reports/test-results" ]; then
+            find reports/test-results -maxdepth 2 -type f | sed 's#^#/#' | head
+          fi

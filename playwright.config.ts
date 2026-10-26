@@ -20,6 +20,7 @@ export default defineConfig({
     ['list'],
     ['html', { outputFolder: 'reports/html-report', open: 'never' }],
     ['junit', { outputFile: 'reports/junit-results.xml' }],
+    ['allure-playwright'],
   ],
   outputDir: 'reports/test-results',
   use: {
@@ -28,7 +29,7 @@ export default defineConfig({
     actionTimeout: 15_000,
     navigationTimeout: 30_000,
     screenshot: 'only-on-failure',
-    trace: 'retain-on-failure',
+    trace: 'on-first-retry',
     video: 'retain-on-failure',
     ignoreHTTPSErrors: true,
     testIdAttribute: 'data-test',

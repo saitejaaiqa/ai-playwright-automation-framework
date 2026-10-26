@@ -13,6 +13,12 @@ export const users = {
   },
 };
 
+export const checkoutUser = {
+  firstName: 'QA',
+  lastName: 'Engineer',
+  postalCode: '12345',
+};
+
 export const productCatalog = {
   backpack: {
     id: 'sauce-labs-backpack',
